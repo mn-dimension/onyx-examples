@@ -1,6 +1,37 @@
-# global-windows
+# global-kafka-windows
 
-Demonstrates using the Global windowing feature.
+Demonstrates using the Global windowing feature with Kafka to work on OSX March 2020.
+
+## Prerequisites:
+
+This requires a non embedded Kafka and ZooKeeper. ZooKeeper must be running on 2181 (not 2188 as Onyx generally uses)
+Kafka must run on port 127.0.0.1:9092
+
+1. Install zookeeper; `brew install zookeeper` 
+2. Install [jenv](https://github.com/jenv/jenv) via homebrew with `brew install jenv` and follow the [instructions](https://github.com/jenv/jenv#11-installing-jenv).
+3. Install java version via homebrew `brew cask install homebrew/cask-versions/adoptopenjdk8`
+4. Add the versions of java to jenv `jenv add $(/usr/libexec/java_home -v 1.8) && jenv add $(/usr/libexec/java_home)`
+5. Install kafka with `brew install kafka`
+
+## Cleaning out Zookeeper and Kafka structure
+
+`rm -rf /usr/local/var/lib/zookeeper`
+`rm -rf /usr/local/var/lib/kafka-logs*`
+
+## Running
+
+Run everything from the project directory where the correct Java version will be set by jenv local settings and each step in it's own terminal.
+
+1. **Zookeeper**: `zookeeper-server-start /usr/local/etc/kafka/zookeeper.properties`
+2. **Start Kafka**: ` kafka-server-start /usr/local/etc/kafka/server.properties`
+3. **Create a new topic**: `kafka-topics --create --zookeeper localhost:2181 --topic my-message-stream --replication-factor 3 --partitions 1`. You can see the topics by `kafka-topics --list --zookeeper localhost:2181`
+4. **Send some messages on the topic**: `kafka-console-producer --broker-list localhost:9092 --topic my-message-stream` and type some messages eg. 
+`{:n 0 :event-time #inst "2015-09-13T03:00:00.829-00:00"}
+{:n 1 :event-time #inst "2015-09-13T03:03:00.829-00:00"}
+{:n 2 :event-time #inst "2015-09-13T03:07:00.829-00:00"}
+{:n 3 :event-time #inst "2015-09-13T03:11:00.829-00:00"}
+{:n 4 :event-time #inst "2015-09-13T03:15:00.829-00:00"}`
+5. **Run**: `lein run`
 
 ## License
 

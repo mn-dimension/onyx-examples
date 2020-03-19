@@ -8,15 +8,16 @@
 (def id (java.util.UUID/randomUUID))
 
 (def env-config
-  {:zookeeper/address "127.0.0.1:2188"
-   :zookeeper/server? true
-   :zookeeper.server/port 2188
+  {:zookeeper/address "127.0.0.1:2181"
+   :zookeeper.server/port 2181
+   :zookeeper/server? false
    :onyx/tenancy-id id})
 
 (def peer-config
-  {:zookeeper/address "127.0.0.1:2188"
+  {:zookeeper/address "127.0.0.1:2181"
    :onyx/tenancy-id id
    :onyx.peer/job-scheduler :onyx.job-scheduler/balanced
+   :onyx.peer/storage.zk.insanely-allow-windowing? true
    :onyx.messaging/impl :aeron
    :onyx.messaging/peer-port 40200
    :onyx.messaging/bind-addr "localhost"})
@@ -35,7 +36,7 @@
     :kafka/topic "my-message-stream"
     :kafka/group-id "onyx-consumer"
     :kafka/zookeeper "127.0.0.1:2181"
-    :kafka/offset-reset :earliest
+    :kafka/offset-reset :latest
     :kafka/deserializer-fn :onyx.tasks.kafka/deserialize-message-edn
     :kafka/wrap-with-metadata? false
     :onyx/max-peers 1

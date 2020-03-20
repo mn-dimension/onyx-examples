@@ -5,6 +5,9 @@
             [onyx.api])
   (:gen-class))
 
+(defn kafka-message-fn [str]
+  (hash-map :message str))
+
 (def id (java.util.UUID/randomUUID))
 
 (def env-config
@@ -26,14 +29,16 @@
 
 (def workflow
   [[:in :identity]
-   [:identity :out]])
+   [:in :kafka-message]
+   [:identity :out1]
+   [:kafka-message :out2]])
 
 (def catalog
   [{:onyx/name :in
     :onyx/plugin :onyx.plugin.kafka/read-messages
     :onyx/type :input
     :onyx/medium :kafka
-    :kafka/topic "my-message-stream"
+    :kafka/topic "my-input-message-stream"
     :kafka/group-id "onyx-consumer"
     :kafka/zookeeper "127.0.0.1:2181"
     :kafka/offset-reset :latest
@@ -48,13 +53,29 @@
     :onyx/type :function
     :onyx/batch-size batch-size}
 
-   {:onyx/name :out
+   {:onyx/name :kafka-message
+    :onyx/fn ::kafka-message-fn
+    :onyx/type :function
+    :onyx/batch-size batch-size}
+
+   {:onyx/name :out1
     :onyx/plugin :onyx.plugin.core-async/output
     :onyx/type :output
     :onyx/medium :core.async
-    :onyx/max-peers 1
+    :onyx/max-peers 6
     :onyx/batch-size batch-size
-    :onyx/doc "Writes segments to a core.async channel"}])
+    :onyx/doc "Writes segments to a core.async channel"}
+
+   {:onyx/name :out2
+    :onyx/plugin :onyx.plugin.kafka/write-messages
+    :onyx/type :output
+    :onyx/medium :kafka
+    :kafka/topic "my-output-message-stream"
+    :kafka/zookeeper "127.0.0.1:2181"
+    :kafka/serializer-fn :onyx.tasks.kafka/serialize-message-edn
+    :kafka/request-size 307200
+    :onyx/batch-size batch-size
+    :onyx/doc "Writes messages to a kafka topic"}])
 
 (def capacity 1000)
 (def output-chan (chan capacity))
@@ -85,10 +106,12 @@
 (def lifecycles
   [{:lifecycle/task :in
     :lifecycle/calls :onyx.plugin.kafka/read-messages-calls}
-   {:lifecycle/task :out
+   {:lifecycle/task :out1
     :lifecycle/calls ::out-calls}
-   {:lifecycle/task :out
-    :lifecycle/calls :onyx.plugin.core-async/writer-calls}])
+   {:lifecycle/task :out1
+    :lifecycle/calls :onyx.plugin.core-async/writer-calls}
+   {:lifecycle/task :out2
+    :lifecycle/calls :onyx.plugin.kafka/write-messages-calls}])
 
 (def windows
   [{:window/id :collect-segments

@@ -8,13 +8,13 @@
 (def id (java.util.UUID/randomUUID))
 
 (def env-config
-  {:zookeeper/address "127.0.0.1:2181"
-   :zookeeper.server/port 2181
-   :zookeeper/server? false
+  {:zookeeper/address "127.0.0.1:2188"
+   :zookeeper.server/port 2188
+   :zookeeper/server? true
    :onyx/tenancy-id id})
 
 (def peer-config
-  {:zookeeper/address "127.0.0.1:2181"
+  {:zookeeper/address "127.0.0.1:2188"
    :onyx/tenancy-id id
    :onyx.peer/job-scheduler :onyx.job-scheduler/balanced
    :onyx.peer/storage.zk.insanely-allow-windowing? true

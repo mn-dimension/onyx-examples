@@ -8,6 +8,10 @@
 (defn kafka-message-fn [str]
   (hash-map :message str))
 
+(defn printing-identity [x]
+  (println x)
+  x)
+
 (def id (java.util.UUID/randomUUID))
 
 (def env-config
@@ -49,7 +53,8 @@
     :onyx/doc "Reads messages from a Kafka topic"}
 
    {:onyx/name :identity
-    :onyx/fn :clojure.core/identity
+;    :onyx/fn :clojure.core/identity
+    :onyx/fn ::printing-identity
     :onyx/type :function
     :onyx/batch-size batch-size}
 
